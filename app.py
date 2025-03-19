@@ -23,7 +23,10 @@ def process_file():
         df = pd.read_csv(file_path)
 
         required_columns = {"product", "amount"}
-        if not required_columns.issubset(df.columns) or not df["amount"].apply(lambda x: str(x).isdigit()).all():
+        if not required_columns.issubset(df.columns):
+            return jsonify({"file": data["file"], "error": "Input file not in CSV format."}), 400
+
+        if not df["amount"].apply(lambda x: str(x).strip().isdigit()).all():
             return jsonify({"file": data["file"], "error": "Input file not in CSV format."}), 400
 
         df["amount"] = df["amount"].astype(int)
@@ -32,8 +35,11 @@ def process_file():
         return jsonify({"file": data["file"], "sum": int(total_sum)}), 200
 
     except (pd.errors.ParserError, pd.errors.EmptyDataError):
+        # Handle CSV parsing errors
         return jsonify({"file": data["file"], "error": "Input file not in CSV format."}), 400
-
+    except Exception as e:
+        # Catch all other exceptions (e.g., permission errors)
+        return jsonify({"file": data["file"], "error": "Internal server error."}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=6001)
