@@ -12,6 +12,10 @@ spec:
       labels:
         app: container-2
     spec:
+      tolerations: 
+      - key: "node.kubernetes.io/disk-pressure"
+        operator: "Exists"
+        effect: "NoSchedule"
       containers:
       - name: container-2
         image:  us-central1-docker.pkg.dev/csci5409cloudcomputing-453821/container-repository/container2:latest
