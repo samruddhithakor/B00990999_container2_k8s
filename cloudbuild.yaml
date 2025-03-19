@@ -1,0 +1,18 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/csci5409cloudcomputing-453821/container-repository/container2:latest', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/csci5409cloudcomputing-453821/container-repository/container2:latest']
+  - name: 'gcr.io/cloud-builders/kubectl'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud container clusters get-credentials k8s-cluster --zone us-central1-a
+        kubectl apply -f pv.yaml
+        kubectl apply -f pvc.yaml
+        kubectl apply -f deployment.yaml
+        kubectl apply -f service.yaml
+    
+options:
+  logging: CLOUD_LOGGING_ONLY
