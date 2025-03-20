@@ -5,7 +5,6 @@ import os
 
 app = Flask(__name__)
 
-# GKE Persistent Volume Mount Directory
 STORAGE_DIR = "/samruddhi_PV_dir"
 
 @app.route('/process', methods=['POST'])
