@@ -13,8 +13,6 @@ def process():
     filename = data.get('file')
     product = data.get('product')
 
-    app.logger.info('B00990999_Samruddhi')
-
     if not filename or not product:
         return jsonify({"error": "Invalid JSON input."}), 400
 
