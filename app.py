@@ -27,7 +27,8 @@ def process():
         with open(filepath, 'r') as f:
             reader = csv.reader(f)
             header = next(reader)
-            if header != ['product', ' amount']:
+            
+            if [col.strip() for col in header] != ['product', 'amount']:
                 return jsonify({"file": filename, "error": "Input file not in CSV format."}), 400
             
             for row in reader:
