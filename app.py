@@ -1,3 +1,4 @@
+import csv
 from flask import Flask, request, jsonify
 import pandas as pd
 import os
@@ -8,38 +9,36 @@ app = Flask(__name__)
 STORAGE_DIR = "/samruddhi_PV_dir"
 
 @app.route('/process', methods=['POST'])
-def process_file():
+def process():
     data = request.get_json()
+    filename = data.get('file')
+    product = data.get('product')
 
-    if not data or "file" not in data or "product" not in data:
-        return jsonify({"file": None, "error": "Invalid JSON input."}), 400
+    if not filename or not product:
+        return jsonify({"error": "Invalid JSON input."}), 400
 
-    file_path = os.path.join(STORAGE_DIR, data["file"])
-
-    if not os.path.exists(file_path):
-        return jsonify({"file": data["file"], "error": "File not found."}), 404
+    filepath = os.path.join(STORAGE_DIR, filename)
+    
+    if not os.path.exists(filepath):
+        return jsonify({"file": filename, "error": "File not found."}), 400
 
     try:
-        df = pd.read_csv(file_path)
-
-        required_columns = {"product", "amount"}
-        if not required_columns.issubset(df.columns):
-            return jsonify({"file": data["file"], "error": "Input file not in CSV format."}), 400
-
-        if not df["amount"].apply(lambda x: str(x).strip().isdigit()).all():
-            return jsonify({"file": data["file"], "error": "Input file not in CSV format."}), 400
-
-        df["amount"] = df["amount"].astype(int)
-        total_sum = df[df["product"] == data["product"]]["amount"].sum()
-
-        return jsonify({"file": data["file"], "sum": int(total_sum)}), 200
-
-    except (pd.errors.ParserError, pd.errors.EmptyDataError):
-        # Handle CSV parsing errors
-        return jsonify({"file": data["file"], "error": "Input file not in CSV format."}), 400
+        total = 0
+        with open(filepath, 'r') as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            if header != ['product', ' amount']:
+                return jsonify({"file": filename, "error": "Input file not in CSV format."}), 400
+            
+            for row in reader:
+                if len(row) != 2:
+                    return jsonify({"file": filename, "error": "Input file not in CSV format."}), 400
+                if row[0].strip() == product:
+                    total += int(row[1].strip())
+        return jsonify({"file": filename, "sum": total}), 200
     except Exception as e:
-        # Catch all other exceptions (e.g., permission errors)
-        return jsonify({"file": data["file"], "error": "Internal server error."}), 500
+        return jsonify({"file": filename, "error": "Input file not in CSV format."}), 400
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=6001)
